@@ -1,0 +1,20 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: require-requests-limits
+spec:
+  validationActions: [Audit]
+  evaluation:
+    background:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["pods"]
+  validations:
+  - expression: >-
+      object.spec.containers.all(c, has(c.resources) && has(c.resources.requests) && has(c.resources.limits) &&
+      'cpu' in c.resources.requests && 'memory' in c.resources.requests && 'memory' in c.resources.limits)
+    message: "requests (cpu, memory) et limits.memory sont obligatoires."
